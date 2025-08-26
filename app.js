@@ -32,7 +32,36 @@ io.on("connection", function (socket) {
     }else{
         socket.emit("spectator role")
     }
+    socket.on('disconnect',()=>{
+        if(socket.id===players.white){
+            delete players.white;
+        }
+        else if(socket.id===players.black){
+            delete players.black;
+        }   
+    })
+    socket("move",(move)=>{
+        try{
+            if(chess.turn=='w' && socket.id!=players.white)return ;
+            if(chess.turn=='b' && socket.id!=players.black)return ;
+            const result=chess.move(move)
+            if(result){
+                 currentplayer=chess.turn();
+                io.emit("move",move);
+                io.emit('boardstate', chess.fen())
+            }else{
+                console.log("invalid move: ",move   );
+                socket.emit("invalid move")
+            }
+        } catch(err){
+            console.log("error: ",err);
+            socket.emit("invalid move :",move)
+        
+
+        }
+    })
 })
+
 
 
 
